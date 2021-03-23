@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatroom</title>
+</head>
+<body>
+<div class ="User_list">
+    <h1> Online User</h1>
+    <div id="online">
+
+    </div>
+</div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.min.js"></script>
+    <script type="text/javascript">
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    socket.on('connect', function () {
+        socket.emit('connection established');
+    });
+    socket.on('connection received',function (new_onlineuser) {
+        $('#online').append(
+            '<div class = "' + new_onlineuser+ 'online">' + new_onlineuser + '</div>')
+    })
+    </script>
+</body>
+</html>
