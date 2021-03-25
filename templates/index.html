@@ -1,11 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <head>
+<style>
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #87CEFA;
+    position: fixed;
+    top: 0;
+    width: 100%;
+  }
+
+  li {
+    display: inline;
+    border-right: 1px solid #bbb;
+    float: left;
+  }
+
+  li a {
+    display: block;
+    color: #FF69B4;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+  }
+
+  li a:hover {
+    background-color: #111;
+  }
+
+  li:last-child {
+    border-right: none;
+  }
+
+  .active {
+  background-color: #4CAF50;
+  }
+
+  html {
+  background-image: url("pic/Bull.jpg");
+  width:100%;
+  height:100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  position:relative;
+  }
+
+  header {
+  background-color: black;
+  padding: 46px;
+  text-align: center;
+  font-size: 36px;
+  color: pink;
+  }
+
+</style>
     <meta charset="UTF-8">
     <title>Home</title>
 </head>
 <body>
-<a href="{{ url_for('login') }}">Please Login.</a>
-<a href="{{ url_for('register') }}">Please Register.</a>
+  <ul>
+    <li><a href="{{ url_for('index') }}">Home</a>
+    <li><a href="{{ url_for('login') }}">Please Login.</a>
+    <li><a href="{{ url_for('register') }}">Please Register.</a>
+  </ul>
+
+  <header>Welcome to iCanBB! Start your conversation!</header>
+  <header>More Functionalities coming soon!</header>
+  <header>Do you like Black and Pink?</header>
+
 </body>
 </html>
