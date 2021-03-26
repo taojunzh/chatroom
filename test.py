@@ -26,6 +26,10 @@ db.create_all()
 db.session.commit()
 @app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route('/chatroom')
+def chatroom():
     return render_template('chatroom.html')
 
 @app.route("/register", methods=["GET", "POST"])
