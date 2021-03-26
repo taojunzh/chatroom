@@ -9,8 +9,8 @@
     padding: 0;
     overflow: hidden;
     background-color: #87CEFA;
-    position: fixed;
-    top: 0;
+    position: -webkit-sticky; /* Safari */
+    position: sticky;
     width: 100%;
   }
 
@@ -52,7 +52,6 @@
 
   header {
   background-color: black;
-  padding: 46px;
   text-align: center;
   font-size: 36px;
   color: pink;
@@ -63,13 +62,12 @@
     <title>Home</title>
 </head>
 <body>
+  <header>Welcome to iCanBB! Start your conversation!</header>
   <ul>
     <li><a href="{{ url_for('index') }}">Home</a>
     <li><a href="{{ url_for('login') }}">Please Login.</a>
     <li><a href="{{ url_for('register') }}">Please Register.</a>
   </ul>
-
-  <header>Welcome to iCanBB! Start your conversation!</header>
   <header>More Functionalities coming soon!</header>
   <header>Do you like Black and Pink?</header>
 
