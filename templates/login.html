@@ -1,25 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Login page</title>
+  <meta charset="UTF-8">
+  <title>Login Page</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-<h1>Please Login</h1>
-<form id ="Login-page" action="" method="POST">
-    <div class = "Login-group">
+  <a href="index.html">
+      <img src="pic/home_icon.png" class ="home_icon">
+  </a>
+
+  <div class ="loginbox">
+    <img src="pic/user_icon.png" class = "user_icon">
+    <form id ="Login-page" action="" method="POST">
+      <div class = "Login-group">
         <input name = "username" type="username" id ="username" placeholder="Username" required>
-    </div>
-    <div class = "Login-group">
+      </div>
+      <div class = "Login-group">
         <input name = "password" type="password" id ="pass" placeholder="Password" required>
-    </div>
-    <input type="submit"/>
-</form>
-<span id = "login">Don't have an account? <a href="{{ url_for('register') }}">Please Register.</a></span>
-{% if error %}
-<div id = "error-message" class="alert alert-danger" id = "error message" role="alert">
-    {{ error }}
-</div>
-{%endif%}
+      </div>
+      <input type="submit" name="" value="log in"/>
+    </form>
+    <span id = "register">Don't have an account? <a href="{{ url_for('register') }}">Please Register</a></span>
+  </div>
 </body>
 </html>
