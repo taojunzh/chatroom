@@ -1,0 +1,4 @@
+technology used: Flask 
+what it accomplishes: help us to build a web application
+how it works: the micro-framework. It has many tools, libraries and technologies
+What license(s) or terms of service: https://flask.palletsprojects.com/en/1.1.x/license/
