@@ -16,13 +16,30 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.min.js"></script>
     <script type="text/javascript">
     var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var firsttime=true;
     socket.on('connect', function () {
         socket.emit('connection established');
     });
-    socket.on('connection received',function (new_onlineuser) {
-        $('#online').append(
+    socket.on('connection received',function (new_onlineuser,Online_Users) {
+        if(firsttime){
+            for(var i =0; i <Online_Users.length;i++){
+                console.log(Online_Users[i]);
+                $('#online').append(
+                '<div class = "' + Online_Users[i]+ 'online">' + Online_Users[i] + '</div>')
+                }
+            firsttime = false;
+        }
+        else{
+            $('#online').append(
             '<div class = "' + new_onlineuser+ 'online">' + new_onlineuser + '</div>')
-    })
+        }
+
+    });
+
     </script>
+<label for="chat-comment">Comment: </label>
+<input id="chat-comment" type="text" name="comment">
+
+<button onclick="sendMessage()">Chat</button>
 </body>
 </html>
