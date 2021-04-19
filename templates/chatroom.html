@@ -1,45 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Chatroom</title>
+  <meta charset="UTF-8">
+  <title>Chatroom</title>
 </head>
+
 <body>
-<div class ="User_list">
+  <div class="User_list">
     <h1> Online User</h1>
     <div id="online">
 
     </div>
-</div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.min.js"></script>
-    <script type="text/javascript">
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.min.js"></script>
+  <script type="text/javascript">
     var socket = io.connect('http://' + document.domain + ':' + location.port);
-    var firsttime=true;
-    socket.on('connect', function () {
-        socket.emit('connection established');
+    var firsttime = true;
+    socket.on('connect', function() {
+      socket.emit('connection established');
     });
-    socket.on('connection received',function (new_onlineuser,Online_Users) {
-        if(firsttime){
-            for(var i =0; i <Online_Users.length;i++){
-                console.log(Online_Users[i]);
-                $('#online').append(
-                '<div class = "' + Online_Users[i]+ 'online">' + Online_Users[i] + '</div>')
-                }
-            firsttime = false;
+    socket.on('connection received', function(new_onlineuser, Online_Users) {
+      if (firsttime) {
+        for (var i = 0; i < Online_Users.length; i++) {
+          console.log(Online_Users[i]);
+          $('#online').append(
+            '<div class = "' + Online_Users[i] + 'online">' + Online_Users[i] + '</div>')
         }
-        else{
-            $('#online').append(
-            '<div class = "' + new_onlineuser+ 'online">' + new_onlineuser + '</div>')
-        }
+        firsttime = false;
+      } else {
+        $('#online').append(
+          '<div class = "' + new_onlineuser + 'online">' + new_onlineuser + '</div>')
+      }
 
     });
+  </script>
 
-    </script>
-<label for="chat-comment">Comment: </label>
-<input id="chat-comment" type="text" name="comment">
+  <div id='display-message'></div>
+  <label for="chat-comment">Comment: </label>
+  <input id="chat-comment" type="text" name="comment">
+  <button onclick="sendMessage()">Chat</button>
 
-<button onclick="sendMessage()">Chat</button>
+  <script>
+    socket.on('message', data => {
+      let para = document.createElement("p")
+      let node = document.createTextNode("[" + data["time"] + "]")
+      para.appendChild(node)
+      let br = document.createElement("br")
+      para.appendChild(br)
+      node = document.createTextNode(data['username'] + " : " + data['comment'])
+      para.appendChild(node)
+      let div = document.getElementById('display-message')
+      div.appendChild(para)
+    })
+
+    document.addEventListener("keypress", function(event) {
+      if (event.code === "Enter") {
+        sendMessage();
+      }
+    })
+
+    function sendMessage() {
+      const chatBox = document.getElementById("chat-comment");
+      const comment = chatBox.value;
+      chatBox.value = "";
+      chatBox.focus();
+      if (comment !== "") {
+        socket.send({
+          'username': "admin",
+          'comment': comment
+        });
+      }
+    }
+    // Called when the server sends a new message over the WebSocket and renders that message so the user can read it
+    function addMessage(message) {
+      const chatMessage = JSON.parse(message.data);
+      let chat = document.getElementById('chat');
+      chat.innerHTML += "<b>" + chatMessage['username'] + "</b>: " + chatMessage["comment"] + "<br/>";
+    }
+  </script>
 </body>
+
 </html>

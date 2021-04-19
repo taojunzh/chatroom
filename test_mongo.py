@@ -3,11 +3,12 @@ from flask_socketio import SocketIO,join_room,leave_room
 from flask_login import current_user, login_user, login_required, logout_user, LoginManager
 from flask_sqlalchemy import SQLAlchemy
 
+import datetime
 import uuid
 import pymongo
 #from passlib.hash import pbkdf2_sha256
-# myclient = pymongo.MongoClient('mongo')
-myclient = pymongo.MongoClient("mongodb+srv://ytc:kevin@cluster0.35txz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+myclient = pymongo.MongoClient('mongodb+srv://budong000:budong000@cluster0.nnm9p.mongodb.net/test?authSource=admin&replicaSet=atlas-yunzlk-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true')
+# myclient = pymongo.MongoClient("mongodb://mongo:27017")
 db = myclient.user_login_system
 #chat_history_database.drop()
 
@@ -17,8 +18,8 @@ accounts_collection = db["accounts"]
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
-app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///test.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///test.db'
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
@@ -125,6 +126,11 @@ def connect():
 #     Online_Users.remove(dis_user['display'])
 #
 #     socketio.emit('disconnectd',dis_user['display'])
+@socketio.on("message")
+def message(data):
+    socketio.send({'username': data["username"], 'comment': data["comment"], 'time': datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")})
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.get(user_id)
@@ -132,5 +138,5 @@ def load_user(user_id):
 if __name__ == '__main__':
 
     #socketio.run(app)
-    # socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
-    app.run(port=5000, debug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
+    # app.run(port=5000, debug=True)
