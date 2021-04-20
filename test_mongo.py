@@ -150,9 +150,11 @@ def HTMLescape(string):
     return string.replace("&","&amp").replace("<","&lt").replace(">","&gt")
 
 def check_url(url):
-    response = requests.head(url)
-    return 200==response.status_code
-
+    try:
+        response = requests.head(url)
+        return 1 if 200==response.status_code else 0
+    except:
+        return 0
 
 @login_manager.user_loader
 def load_user(user_id):

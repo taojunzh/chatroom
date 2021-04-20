@@ -118,7 +118,7 @@
       if (data["type"] == "comment") {
         msg += " : " + data['comment'] + "</p>"
       } else if (data["type"] == "link") {
-        if (data["valid"] == true) {
+        if (data["valid"]) {
           msg += " : Shared A YouTube Video"
           msg += "<br><a href=" + data["link"] + ">"
           msg += "Link </a>"
