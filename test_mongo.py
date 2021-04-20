@@ -137,6 +137,10 @@ def message(data):
         })
     if(data["type"]=="link"):
         embedded= data["link"].replace("https://www.youtube.com/watch?v=","https://www.youtube.com/embed/")
+        if "&ab_channel=" in embedded:
+            embedded= embedded.split("&ab_channel=")
+            embedded= embedded[0]
+
         socketio.send({
         'username': data["username"],
         'link': HTMLescape(data["link"]),
@@ -152,7 +156,7 @@ def HTMLescape(string):
 def check_url(url):
     try:
         response = requests.head(url)
-        return 1 if 200==response.status_code else 0
+        return 1 if (200==response.status_code && "youtube.com" in url )else 0
     except:
         return 0
 
