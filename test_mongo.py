@@ -8,8 +8,7 @@ import datetime
 import uuid
 import pymongo
 #from passlib.hash import pbkdf2_sha256
-myclient = pymongo.MongoClient('mongodb+srv://budong000:budong000@cluster0.nnm9p.mongodb.net/test?authSource=admin&replicaSet=atlas-yunzlk-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true')
-# myclient = pymongo.MongoClient("mongodb://mongo:27017")
+myclient = pymongo.MongoClient("mongodb://mongo:27017")
 db = myclient.user_login_system
 #chat_history_database.drop()
 
