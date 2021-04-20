@@ -47,6 +47,11 @@
     text-align: center;
   }
 
+  .scrollable {
+    height: 550px;
+    overflow-y: auto;
+  }
+
   @media (max-width: 600px) {
     section {
       -webkit-flex-direction: column;
@@ -66,16 +71,24 @@
       </ul>
     </nav>
 
-    <article id='display-message'>Messages:
+    <article class="scrollable" id='display-message'>Messages:
     </article>
   </section>
 
 
   <footer>
-    <label for="chat-comment">Comment: </label>
-    <input id="chat-comment" type="text" name="comment">
-    <button onclick="sendMessage()">Chat</button>
+    <div>
+      <label for="chat-comment">Message: </label>
+      <input id="chat-comment" type="text" name="comment">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+    <div>
+      <label for="youtube-link">Share Your YouTube Link: </label>
+      <input id="youtube-link" type="text" name="youtube">
+      <button onclick="shareLink()">Share</button>
+    </div>
   </footer>
+
   <script>
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     var firsttime = true;
@@ -101,9 +114,25 @@
     });
 
     socket.on('message', data => {
-      let msg = "<p> [" + data["time"] + "] <br>"
-      msg += data['username'] + " : " + data['comment'] + "</p>"
+      let msg = "<p> [" + data["time"] + "] <br>" + data['username']
+      if (data["type"] == "comment") {
+        msg += " : " + data['comment'] + "</p>"
+      } else if (data["type"] == "link") {
+        if (data["valid"] == true) {
+          msg += " : Shared A YouTube Video"
+          msg += "<br><a href=" + data["link"] + ">"
+          msg += "Link </a>"
+          msg += '<br><iframe src="'
+          msg += data["embedded"]
+          msg += '" width="300" height="300" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>></iframe></p>'
+        } else {
+          msg += " : Shared An Invalid YouTube Link!"
+          msg += "<br><a href=" + data["link"] + ">"
+          msg += "Link </a></p>"
+        }
+      }
       $('#display-message').append(msg)
+      scrollBot()
       // let para = document.createElement("p")
       // let node = document.createTextNode("[" + data["time"] + "]")
       // para.appendChild(node)
@@ -129,11 +158,30 @@
       if (comment !== "") {
         socket.send({
           'username': "admin",
-          'comment': comment
+          'comment': comment,
+          "type": "comment"
         });
       }
     }
 
+    function shareLink() {
+      const linkBox = document.getElementById("youtube-link")
+      const link = linkBox.value
+      linkBox.value = ""
+      linkBox.focus()
+      if (link !== "") {
+        socket.send({
+          'username': "youtube",
+          'link': link,
+          "type": "link"
+        })
+      }
+    }
+
+    function scrollBot(){
+      const ele=document.getElementById("display-message").lastChild
+      ele.scrollIntoView()
+    }
     function addMessage(message) {
       const chatMessage = JSON.parse(message.data);
       let chat = document.getElementById('chat');

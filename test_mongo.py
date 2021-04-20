@@ -3,6 +3,7 @@ from flask_socketio import SocketIO,join_room,leave_room
 from flask_login import current_user, login_user, login_required, logout_user, LoginManager
 from flask_sqlalchemy import SQLAlchemy
 
+import requests
 import datetime
 import uuid
 import pymongo
@@ -128,7 +129,30 @@ def connect():
 #     socketio.emit('disconnectd',dis_user['display'])
 @socketio.on("message")
 def message(data):
-    socketio.send({'username': data["username"], 'comment': data["comment"], 'time': datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")})
+    if(data["type"]=="comment"):
+        socketio.send({
+        'username': data["username"],
+        'comment': HTMLescape(data["comment"]),
+        "type": data["type"],
+        'time': datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        })
+    if(data["type"]=="link"):
+        embedded= data["link"].replace("https://www.youtube.com/watch?v=","https://www.youtube.com/embed/")
+        socketio.send({
+        'username': data["username"],
+        'link': HTMLescape(data["link"]),
+        'embedded': HTMLescape(embedded),
+        'valid': check_url(data["link"]),
+        "type": data["type"],
+        'time': datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        })
+
+def HTMLescape(string):
+    return string.replace("&","&amp").replace("<","&lt").replace(">","&gt")
+
+def check_url(url):
+    response = requests.head(url)
+    return 200==response.status_code
 
 
 @login_manager.user_loader
