@@ -1,11 +1,11 @@
 from flask import Flask, jsonify, render_template,redirect,url_for,request,session
 
 from flask_login import current_user, login_user, login_required, logout_user, LoginManager
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO,join_room,leave_room
 import requests
 import datetime
 from User import User
-from database import register,verify,get_userinfo
+from database import registration,verify,get_userinfo
 import bcrypt
 from pymongo.errors import DuplicateKeyError
 
@@ -38,7 +38,9 @@ def index():
 @app.route("/logout/")
 @login_required
 def logout():
+    Online_Users.remove(current_user.display)
     logout_user()
+
     return redirect(url_for('index'))
 
 @app.route('/chatroom')
@@ -57,7 +59,7 @@ def register():
         salt = bcrypt.gensalt()
         hashed = bcrypt.hashpw(password, salt)
         try:
-            register(display,username,hashed,salt)
+            registration(display,username,hashed,salt)
             return redirect(url_for('login'))
         except DuplicateKeyError:
             message= "User existed"
@@ -74,6 +76,7 @@ def login():
         user = get_userinfo(username)
         if user and verify(username,password):
             login_user(user)
+            Online_Users.append(current_user.display)
             return redirect(url_for('index'))
         else:
             message ="Invalid username or password. Please try again."
@@ -83,61 +86,58 @@ def login():
 # def chatroom():
 #     return render_template('chatroom.html')
 
-@socketio.on('connection established')
-def connect():
-    print("connection established")
-    new_onlineuser =session.get('user')
-    new_onlineuser = new_onlineuser['display']
-    print(session)
-    print(Online_Users)
-    socketio.emit('connection received',(new_onlineuser,Online_Users))
+@socketio.on('connect')
+def connect_handler():
+    if current_user.is_authenticated:
+        print("current user connected")
+        user = current_user.display
+        print(Online_Users)
+        socketio.emit('add user',(user,Online_Users))
+    else:
+        return False
 
-# @socketio.on('disconnect')
-# def disconnect():
-#     dis_user= session.get('user')
-#     Online_Users.remove(dis_user['display'])
-#
-#     socketio.emit('disconnectd',dis_user['display'])
 @socketio.on("message")
 def message(data):
-    if(data["type"]=="comment"):
+    if(data["type"] == "comment"):
         socketio.send({
-        'username': data["username"],
-        'comment': HTMLescape(data["comment"]),
-        "type": data["type"],
-        'time': datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+            'username': data["username"],
+            'comment': HTMLescape(data["comment"]),
+            "type": data["type"],
+            'time': datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
         })
-    if(data["type"]=="link"):
-        embedded= data["link"].replace("https://www.youtube.com/watch?v=","https://www.youtube.com/embed/")
+    if(data["type"] == "link"):
+        embedded = data["link"].replace(
+            "https://www.youtube.com/watch?v=", "https://www.youtube.com/embed/")
         if "&ab_channel=" in embedded:
-            embedded= embedded.split("&ab_channel=")
-            embedded= embedded[0]
+            embedded = embedded.split("&ab_channel=")
+            embedded = embedded[0]
 
         socketio.send({
-        'username': data["username"],
-        'link': HTMLescape(data["link"]),
-        'embedded': HTMLescape(embedded),
-        'valid': check_url(data["link"]),
-        "type": data["type"],
-        'time': datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+            'username': data["username"],
+            'link': HTMLescape(data["link"]),
+            'embedded': HTMLescape(embedded),
+            'valid': check_url(data["link"]),
+            "type": data["type"],
+            'time': datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
         })
+
 
 def HTMLescape(string):
-    return string.replace("&","&amp").replace("<","&lt").replace(">","&gt")
+    return string.replace("&", "&amp").replace("<", "&lt").replace(">", "&gt")
+
 
 def check_url(url):
     try:
         response = requests.head(url)
-        return 1 if (200==response.status_code and "youtube.com" in url )else 0
+        return 1 if (200 == response.status_code and "youtube.com" in url)else 0
     except:
         return 0
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get(user_id)
+    return get_userinfo(user_id)
 
 if __name__ == '__main__':
 
-    #socketio.run(app)
+    socketio.run(app)
     # socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
-    app.run(port=5000, debug=True)

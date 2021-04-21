@@ -92,28 +92,21 @@
   <script>
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     var firsttime = true;
-    socket.on('connect', function() {
-      socket.emit('connection established');
-    });
-
-    socket.on('connection received', function(new_onlineuser, Online_Users) {
-      if (firsttime) {
-        for (var i = 0; i < Online_Users.length; i++) {
-          console.log(Online_Users[i]);
-          $('#online').append('<li>' + Online_Users[i] + '</li>')
-          // $('#online').append(
-          //   '<div class = "' + Online_Users[i] + 'online">' + Online_Users[i] + '</div>')
+    var username ='';
+    socket.on('add user',function (user,Online_User) {
+      if(firsttime){
+        for (var i =0; i<Online_User.length; i++){
+          $('#online').append('<li>' + Online_User[i] + '</li>');
         }
-        firsttime = false;
-      } else {
-        $('#online').append('<li>' + new_onlineuser + '</li>')
-        // $('#online').append(
-        //   '<div class = "' + new_onlineuser + 'online">' + new_onlineuser + '</div>')
+        username = user;
+        firsttime = false
       }
-
+      else{
+        $('#online').append('<li>' + user + '</li>');
+        username = user;
+      }
     });
-
-    socket.on('message', data => {
+        socket.on('message', data => {
       let msg = "<p> [" + data["time"] + "] <br>" + data['username']
       if (data["type"] == "comment") {
         msg += " : " + data['comment'] + "</p>"
@@ -157,7 +150,7 @@
       chatBox.focus();
       if (comment !== "") {
         socket.send({
-          'username': "admin",
+          'username': username,
           'comment': comment,
           "type": "comment"
         });
@@ -171,7 +164,7 @@
       linkBox.focus()
       if (link !== "") {
         socket.send({
-          'username': "youtube",
+          'username': username,
           'link': link,
           "type": "link"
         })
@@ -189,5 +182,4 @@
     }
   </script>
 </body>
-
 </html>
