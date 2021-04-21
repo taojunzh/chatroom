@@ -1,6 +1,7 @@
 from User import User
 import pymongo
-myclient = pymongo.MongoClient("mongodb+srv://ytc:kevin@cluster0.35txz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+myclient = pymongo.MongoClient("mongodb://mongo:27017")  #for docker
+# myclient = pymongo.MongoClient("mongodb+srv://ytc:kevin@cluster0.35txz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 db = myclient.user_login_system
 import bcrypt
 
@@ -21,3 +22,15 @@ def verify(username,password):
         return True
     else :
         return False
+
+def validate_dis(display):
+    if db.users.find_one({'dis_name': display}):
+        return False
+    else:
+        return True
+
+def validate_user(username):
+    if db.users.find_one({'username': username}):
+        return False
+    else:
+        return True

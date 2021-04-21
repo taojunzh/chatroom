@@ -4,8 +4,7 @@ from flask_login import current_user, login_user, login_required, logout_user, L
 from flask_socketio import SocketIO,join_room,leave_room
 import requests
 import datetime
-from User import User
-from database import registration,verify,get_userinfo
+from database import registration,verify,get_userinfo,validate_dis,validate_user
 import bcrypt
 from pymongo.errors import DuplicateKeyError
 
@@ -20,17 +19,6 @@ login_manager.login_view = 'login'
 login_manager.init_app(app)
 Online_Users=[]
 
-
-
-def start_session(self, user):
-        del user['password']
-        session['logged_in'] = True
-        session['user'] = user
-        Online_Users.append(user["display"].title())
-        # Online_Users.append("d2")
-        return
-
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -40,7 +28,6 @@ def index():
 def logout():
     Online_Users.remove(current_user.display)
     logout_user()
-
     return redirect(url_for('index'))
 
 @app.route('/chatroom')
@@ -58,11 +45,11 @@ def register():
         password = request.form.get('password').encode('utf-8')
         salt = bcrypt.gensalt()
         hashed = bcrypt.hashpw(password, salt)
-        try:
+        if validate_dis(display) and validate_user(username):
             registration(display,username,hashed,salt)
             return redirect(url_for('login'))
-        except DuplicateKeyError:
-            message= "User existed"
+        else:
+            message= "User or displayname existed"
     return render_template('register.html', msg = message)
 
 @app.route("/login", methods=["GET", "POST"])
@@ -89,12 +76,15 @@ def login():
 @socketio.on('connect')
 def connect_handler():
     if current_user.is_authenticated:
-        print("current user connected")
         user = current_user.display
         print(Online_Users)
         socketio.emit('add user',(user,Online_Users))
     else:
         return False
+
+@socketio.on("disconnect")
+def disconnect():
+    logout_user()
 
 @socketio.on("message")
 def message(data):
@@ -139,5 +129,5 @@ def load_user(user_id):
 
 if __name__ == '__main__':
 
-    socketio.run(app)
-    # socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
+    # socketio.run(app)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
