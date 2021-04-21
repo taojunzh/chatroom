@@ -10,7 +10,7 @@ flask is the main framework we implement in our project and it handles most of i
 
 We are using Flask in our test.mongo.py
 
-###Flask initialization
+### Flask initialization
 
 ```
 from flask import Flask
@@ -20,7 +20,7 @@ app.config['SECRET_KEY'] = 'secret!'
 The code above is for Flask to receive the name we gave and begin
 to find resources and generate features such as routing and render template.
 
-###Flask Routing
+### Flask Routing
 ```
 @app.route('/')
 def index():
@@ -42,7 +42,7 @@ def login():
 The flask routing helps to keep track of request path. From the code above,
 if the path is / which is the root path, it will call def index() function.
 
-###Flask render_template
+### Flask render_template
 ```
 test_mongo.py
 def register():
@@ -57,21 +57,21 @@ The render_template are able to accomplish a lot of things for us
 We are able to respond the users' request with the html and we are able 
 to incorporate jinja experssion.
 
-###Flask url_for
+### Flask url_for
 
 This attribute helps to redirect to another path
 
 
-##How does this technology accomplish what it does?
+## How does this technology accomplish what it does?
 
-###Flask initialization
+### Flask initialization
 According to [Object](https://flask.palletsprojects.com/en/1.1.x/api/#application-object),
 This is intialization of a Flask instance. What it does is to implement a WSGI 
 (Web Server Gateaway Interface) application as the central object. The app.config['SecretKey']
 is used to keep the data safe. With this Flask instance, it can find resource that handle
 the feature like request,route, and render template,etc.
 
-###Flask route
+### Flask route
 ```
 def index():
     pass
@@ -84,7 +84,7 @@ def index():
 The Flask route use the add_url_rule function from Flask to connect a URL rule.
 The route() invokes add_url_rule so def index() can be called and run.
 
-###Flask render_template
+### Flask render_template
 ```    
 @app.route('/')
 def index():
@@ -94,7 +94,7 @@ With the existence of Flask instance, we can use render_template. From above cod
 the render_template will go into the templates folder and look for the 'index.html' 
 which is a template.
 
-##License
+## License
 
 Copyright 2010 Pallets
 
