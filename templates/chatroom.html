@@ -1,28 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Chatroom</title>
-</head>
-<body>
-<div class ="User_list">
-    <h1> Online User</h1>
-    <div id="online">
 
+<head>
+  <meta charset="UTF-8">
+  <title>Chatroom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.min.js"></script>
+</head>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  header {
+    text-align: center;
+  }
+
+  section {
+    display: -webkit-flex;
+    display: flex;
+  }
+
+  nav {
+    -webkit-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    background: #ccc;
+    padding: 20px;
+  }
+
+  nav ul {
+    list-style-type: none;
+    padding: 0
+  }
+
+  article {
+    -webkit-flex: 3;
+    -ms-flex: 3;
+    flex: 3;
+    padding: 10px;
+  }
+
+  footer {
+    text-align: center;
+  }
+
+  .scrollable {
+    height: 550px;
+    overflow-y: auto;
+  }
+
+  @media (max-width: 600px) {
+    section {
+      -webkit-flex-direction: column;
+      flex-direction: column;
+    }
+  }
+</style>
+
+<body>
+  <header>
+    <h2>Chatroom</h2>
+  </header>
+
+  <section>
+    <nav>Online Users:
+      <ul id="online">
+      </ul>
+    </nav>
+
+    <article class="scrollable" id='display-message'>Messages:
+    </article>
+  </section>
+
+
+  <footer>
+    <div>
+      <label for="chat-comment">Message: </label>
+      <input id="chat-comment" type="text" name="comment">
+      <button onclick="sendMessage()">Send</button>
     </div>
-</div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.min.js"></script>
-    <script type="text/javascript">
+    <div>
+      <label for="youtube-link">Share Your YouTube Link: </label>
+      <input id="youtube-link" type="text" name="youtube">
+      <button onclick="shareLink()">Share</button>
+    </div>
+  </footer>
+
+  <script>
     var socket = io.connect('http://' + document.domain + ':' + location.port);
-    socket.on('connect', function () {
-        socket.emit('connection established');
+    var firsttime = true;
+    let username=""
+    socket.on('connect', function() {
+      socket.emit('connection established');
     });
-    socket.on('connection received',function (new_onlineuser) {
-        $('#online').append(
-            '<div class = "' + new_onlineuser+ 'online">' + new_onlineuser + '</div>')
+
+    socket.on('connection received', function(new_onlineuser, Online_Users) {
+      if (firsttime) {
+        for (var i = 0; i < Online_Users.length; i++) {
+          console.log(Online_Users[i]);
+          username=new_onlineuser
+          $('#online').append('<li>' + Online_Users[i] + '</li>')
+          // $('#online').append(
+          //   '<div class = "' + Online_Users[i] + 'online">' + Online_Users[i] + '</div>')
+        }
+        firsttime = false;
+      } else {
+        $('#online').append('<li>' + new_onlineuser + '</li>')
+        // $('#online').append(
+        //   '<div class = "' + new_onlineuser + 'online">' + new_onlineuser + '</div>')
+      }
+
+    });
+
+    socket.on('message', data => {
+      let msg = "<p> [" + data["time"] + "] <br>" + data['username']
+      if (data["type"] == "comment") {
+        msg += " : " + data['comment'] + "</p>"
+      } else if (data["type"] == "link") {
+        if (data["valid"]) {
+          msg += " : Shared A YouTube Video"
+          msg += "<br><a href=" + data["link"] + ">"
+          msg += "Link </a>"
+          msg += '<br><iframe src="'
+          msg += data["embedded"]
+          msg += '" width="300" height="300" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>></iframe></p>'
+        } else {
+          msg += " : Shared An Invalid YouTube Link!"
+          msg += "<br><a href=" + data["link"] + ">"
+          msg += "Link </a></p>"
+        }
+      }
+      $('#display-message').append(msg)
+      scrollBot()
+      // let para = document.createElement("p")
+      // let node = document.createTextNode("[" + data["time"] + "]")
+      // para.appendChild(node)
+      // let br = document.createElement("br")
+      // para.appendChild(br)
+      // node = document.createTextNode(data['username'] + " : " + data['comment'])
+      // para.appendChild(node)
+      // let div = document.getElementById('display-message')
+      // div.appendChild(para)
     })
-    </script>
+
+    document.addEventListener("keypress", function(event) {
+      if (event.code === "Enter") {
+        sendMessage();
+      }
+    })
+
+    function sendMessage() {
+      const chatBox = document.getElementById("chat-comment");
+      const comment = chatBox.value;
+      chatBox.value = "";
+      chatBox.focus();
+      if (comment !== "") {
+        socket.send({
+          'username': username,
+          'comment': comment,
+          "type": "comment"
+        });
+      }
+    }
+
+    function shareLink() {
+      const linkBox = document.getElementById("youtube-link")
+      const link = linkBox.value
+      linkBox.value = ""
+      linkBox.focus()
+      if (link !== "") {
+        socket.send({
+          'username': username,
+          'link': link,
+          "type": "link"
+        })
+      }
+    }
+
+    function scrollBot(){
+      const ele=document.getElementById("display-message").lastChild
+      ele.scrollIntoView()
+    }
+    function addMessage(message) {
+      const chatMessage = JSON.parse(message.data);
+      let chat = document.getElementById('chat');
+      chat.innerHTML += "<b>" + chatMessage['username'] + "</b>: " + chatMessage["comment"] + "<br/>";
+    }
+  </script>
 </body>
+
 </html>
