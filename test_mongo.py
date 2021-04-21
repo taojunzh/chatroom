@@ -1,47 +1,28 @@
 from flask import Flask, jsonify, render_template,redirect,url_for,request,session
-from flask_socketio import SocketIO,join_room,leave_room
-from flask_login import current_user, login_user, login_required, logout_user, LoginManager
-from flask_sqlalchemy import SQLAlchemy
 
+from flask_login import current_user, login_user, login_required, logout_user, LoginManager
+from flask_socketio import SocketIO
 import requests
 import datetime
-import uuid
-import pymongo
+from User import User
+from database import register,verify,get_userinfo
+import bcrypt
+from pymongo.errors import DuplicateKeyError
+
 #from passlib.hash import pbkdf2_sha256
-myclient = pymongo.MongoClient("mongodb://mongo:27017")
-db = myclient.user_login_system
 #chat_history_database.drop()
-
-accounts_collection = db["accounts"]
-
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
-# app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///test.db'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
 Online_Users=[]
 
 
-class User:
 
-    # def __init__(self,display,username,password):
-    #     self.username =username
-    #     self.display = display
-    #     self.password = password
-    #
-    # @staticmethod
-    # def is_authenticated():
-    #     return True
-    #
-    # @staticmethod
-    # def is_active():
-    #     return True
-
-    def start_session(self, user):
+def start_session(self, user):
         del user['password']
         session['logged_in'] = True
         session['user'] = user
@@ -49,36 +30,6 @@ class User:
         # Online_Users.append("d2")
         return
 
-    def signup(self):
-        print(request.form)
-        user = {
-            "_id": uuid.uuid4().hex,
-            "display": request.form.get('display'),
-            "user": request.form.get('username'),
-            "password": request.form.get('password')
-        }
-
-        # Encrypt the password
-        #user['password'] = pbkdf2_sha256.encrypt(user['password'])
-        if db.users.insert_one(user):
-            self.start_session(user)
-            return redirect(url_for('login'))
-        else:
-            return render_template('register.html', error="register failed.")
-
-
-    def login(self):
-
-        user = db.users.find_one({
-            "user": request.form.get('username')
-        })
-
-        #if user and pbkdf2_sha256.verify(request.form.get('password'), user['password']):
-        if user and request.form.get('password') == user['password']:
-            self.start_session(user)
-            return redirect(url_for('index'))
-
-        return render_template('login.html', error="Invalid username or password. Please try again.")
 
 @app.route('/')
 def index():
@@ -96,16 +47,37 @@ def chatroom():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    message =''
     if request.method == 'POST':
-        return User().signup()
-    return render_template('register.html')
+        display = request.form.get('display')
+        username = request.form.get('username')
+        password = request.form.get('password').encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password, salt)
+        try:
+            register(display,username,hashed,salt)
+            return redirect(url_for('login'))
+        except DuplicateKeyError:
+            message= "User existed"
+    return render_template('register.html', msg = message)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    message = ''
     if request.method == 'POST':
-        return User().login()
-
-    return render_template('login.html')
+        username = request.form.get('username')
+        password = request.form.get('password').encode('utf-8')
+        user = get_userinfo(username)
+        if user and verify(username,password):
+            login_user(user)
+            return redirect(url_for('index'))
+        else:
+            message ="Invalid username or password. Please try again."
+    return render_template('login.html',error = message)
 
 # @app.route("/chatroom", methods=["GET", "POST"])
 # def chatroom():
@@ -156,7 +128,7 @@ def HTMLescape(string):
 def check_url(url):
     try:
         response = requests.head(url)
-        return 1 if (200==response.status_code && "youtube.com" in url )else 0
+        return 1 if (200==response.status_code and "youtube.com" in url )else 0
     except:
         return 0
 
@@ -167,5 +139,5 @@ def load_user(user_id):
 if __name__ == '__main__':
 
     #socketio.run(app)
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
-    # app.run(port=5000, debug=True)
+    # socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
+    app.run(port=5000, debug=True)
