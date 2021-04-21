@@ -24,11 +24,7 @@ Online_Users = []
 
 @app.route('/')
 def index():
-    print(session.get("user")['display'])
-    if session.get("user")['display']:
-        return render_template('index.html', status="you have logged in")
-    else:
-        return render_template('index.html', status="Please Login first")
+        return render_template('index.html')
 
 
 @app.route("/logout/")

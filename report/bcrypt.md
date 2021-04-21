@@ -6,7 +6,7 @@ password = request.form.get('password').encode('utf-8')
 salt = bcrypt.gensalt()
 hashed = bcrypt.hashpw(password, salt)
 ```
-Why we need this library?
+Why does bcrypt accomplish for us?
 
 We dont want to store our users' password in plain text.
 
