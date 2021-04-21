@@ -13,7 +13,7 @@ from pymongo.errors import DuplicateKeyError
 
 #from passlib.hash import pbkdf2_sha256
 #chat_history_database.drop()
-FolderPath = 'C:\\Users\\Liang\\Desktop\\cse312Project\\chatroom\\Files'
+FolderPath = 'C:\\Users\\Liang\\Desktop\\cse312Project\\chatroom\\static\\Files'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = Flask(__name__)
@@ -107,7 +107,7 @@ def setting():
             return redirect(url_for('uploaded_file', filename=file.filename))
     return render_template('setting.html')
 
-@app.route('/chatroom/Files/<filename>')
+@app.route('/chatroom/static/Files/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
