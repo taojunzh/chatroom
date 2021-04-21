@@ -1,4 +1,4 @@
-Bcrypt Official [Bcrypt] (https://github.com/pyca/bcrypt)
+Bcrypt Official [Bcrypt](https://github.com/pyca/bcrypt)
 
 Code used in database.py and test_mongo.py
 ```
