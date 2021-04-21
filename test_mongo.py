@@ -1,3 +1,4 @@
+
 from flask import Flask, jsonify, render_template,redirect,url_for,request,session
 
 from flask_login import current_user, login_user, login_required, logout_user, LoginManager
@@ -11,17 +12,24 @@ from pymongo.errors import DuplicateKeyError
 #from passlib.hash import pbkdf2_sha256
 #chat_history_database.drop()
 
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
-Online_Users=[]
+Online_Users = []
+
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    print(session.get("user")['display'])
+    if session.get("user")['display']:
+        return render_template('index.html', status="you have logged in")
+    else:
+        return render_template('index.html', status="Please Login first")
+
 
 @app.route("/logout/")
 @login_required
@@ -30,9 +38,14 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+
 @app.route('/chatroom')
 def chatroom():
-    return render_template('chatroom.html')
+    if len(Online_Users) > 0:
+        return render_template('chatroom.html')
+    else:
+        return redirect(url_for('index'))
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -51,6 +64,7 @@ def register():
         else:
             message= "User or displayname existed"
     return render_template('register.html', msg = message)
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -72,6 +86,7 @@ def login():
 # @app.route("/chatroom", methods=["GET", "POST"])
 # def chatroom():
 #     return render_template('chatroom.html')
+
 
 @socketio.on('connect')
 def connect_handler():
@@ -123,11 +138,15 @@ def check_url(url):
     except:
         return 0
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return get_userinfo(user_id)
 
+
 if __name__ == '__main__':
 
     # socketio.run(app)
+
     socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
+
