@@ -18,7 +18,7 @@ def verify(username,password):
     userinfo = db.users.find_one({'_id': username})
     salt =userinfo['pass_salt']
     hash = userinfo['pass']
-    if bcrypt.hashpw(password   ,salt) == hash:
+    if bcrypt.hashpw(password,salt) == hash:
         return True
     else :
         return False
