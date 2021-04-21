@@ -1,98 +1,25 @@
-from flask import Flask, jsonify, render_template, redirect, url_for, request, session
-from flask_socketio import SocketIO, join_room, leave_room
-from flask_login import current_user, login_user, login_required, logout_user, LoginManager
-from flask_sqlalchemy import SQLAlchemy
 
+from flask import Flask, jsonify, render_template,redirect,url_for,request,session
+
+from flask_login import current_user, login_user, login_required, logout_user, LoginManager
+from flask_socketio import SocketIO,join_room,leave_room
 import requests
 import datetime
-import uuid
-import pymongo
+from database import registration,verify,get_userinfo,validate_dis,validate_user
 import bcrypt
-#from passlib.hash import pbkdf2_sha256
-myclient = pymongo.MongoClient("mongodb://mongo:27017")
-db = myclient.user_login_system
-# chat_history_database.drop()
+from pymongo.errors import DuplicateKeyError
 
-accounts_collection = db["accounts"]
+#from passlib.hash import pbkdf2_sha256
+#chat_history_database.drop()
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
-# app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///test.db'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
 Online_Users = []
-
-
-class User:
-
-    # def __init__(self,display,username,password):
-    #     self.username =username
-    #     self.display = display
-    #     self.password = password
-    #
-    # @staticmethod
-    # def is_authenticated():
-    #     return True
-    #
-    # @staticmethod
-    # def is_active():
-    #     return True
-
-    def start_session(self, user):
-        del user['password']
-        session['logged_in'] = True
-        session['user'] = user
-        Online_Users.append(user["display"].title())
-        # Online_Users.append("d2")
-        return
-
-    def signup(self):
-        # print(request.form)
-        password = request.form.get('password').encode('utf-8')
-        salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(password, salt)
-        user = {
-            "_id": uuid.uuid4().hex,
-            "display": request.form.get('display'),
-            "user": request.form.get('username'),
-            "password": hashed,
-            "password_salt": salt
-        }
-        # user = {
-        #     "_id": uuid.uuid4().hex,
-        #     "display": request.form.get('display'),
-        #     "user": request.form.get('username'),
-        #     "password": request.form.get('password')
-        # }
-
-        # Encrypt the password
-        #user['password'] = pbkdf2_sha256.encrypt(user['password'])
-        if db.users.insert_one(user):
-            self.start_session(user)
-            return redirect(url_for('login'))
-        else:
-            return render_template('register.html', error="register failed.")
-
-
-    def login(self):
-
-        user = db.users.find_one({
-            "user": request.form.get('username')
-        })
-        password = request.form.get('password').encode("utf-8")
-
-        salt = user["password_salt"]
-        hashed = bcrypt.hashpw(password, salt)
-        # if user and pbkdf2_sha256.verify(request.form.get('password'), user['password']):
-        if user and hashed == user['password']:
-            self.start_session(user)
-            return redirect(url_for('index'))
-
-        return render_template('login.html', error="Invalid username or password. Please try again.")
 
 
 @app.route('/')
@@ -107,6 +34,7 @@ def index():
 @app.route("/logout/")
 @login_required
 def logout():
+    Online_Users.remove(current_user.display)
     logout_user()
     return redirect(url_for('index'))
 
@@ -121,37 +49,58 @@ def chatroom():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    message =''
     if request.method == 'POST':
-        return User().signup()
-    return render_template('register.html')
+        display = request.form.get('display')
+        username = request.form.get('username')
+        password = request.form.get('password').encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password, salt)
+        if validate_dis(display) and validate_user(username):
+            registration(display,username,hashed,salt)
+            return redirect(url_for('login'))
+        else:
+            message= "User or displayname existed"
+    return render_template('register.html', msg = message)
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    message = ''
     if request.method == 'POST':
-        return User().login()
-
-    return render_template('login.html')
+        username = request.form.get('username')
+        password = request.form.get('password').encode('utf-8')
+        user = get_userinfo(username)
+        if user and verify(username,password):
+            login_user(user)
+            Online_Users.append(current_user.display)
+            return redirect(url_for('index'))
+        else:
+            message ="Invalid username or password. Please try again."
+    return render_template('login.html',error = message)
 
 # @app.route("/chatroom", methods=["GET", "POST"])
 # def chatroom():
 #     return render_template('chatroom.html')
 
 
-@socketio.on('connection established')
-def connect():
-    print("connection established")
-    new_onlineuser = session.get('user')
-    new_onlineuser = new_onlineuser['display']
+@socketio.on('connect')
+def connect_handler():
+    if current_user.is_authenticated:
+        user = current_user.display
+        print(Online_Users)
+        socketio.emit('add user',(user,Online_Users))
+    else:
+        return False
 
-    socketio.emit('connection received', (new_onlineuser, Online_Users))
+@socketio.on("disconnect")
+def disconnect():
+    logout_user()
 
-# @socketio.on('disconnect')
-# def disconnect():
-#     dis_user= session.get('user')
-#     Online_Users.remove(dis_user['display'])
-#
-#     socketio.emit('disconnectd',dis_user['display'])
 @socketio.on("message")
 def message(data):
     if(data["type"] == "comment"):
@@ -192,12 +141,12 @@ def check_url(url):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get(user_id)
+    return get_userinfo(user_id)
 
 
 if __name__ == '__main__':
 
     # socketio.run(app)
-    # use this line when using docker
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
-    # app.run(port=5000, debug=True)
+
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
+
