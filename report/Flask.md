@@ -6,11 +6,11 @@ flask is the main framework we implement in our project and it handles most of i
 [Flask Source](https://github.com/pallets/flask/)
 
 
-**What does Flask accomplish for us?**
+## **What does Flask accomplish for us?**
 
 We are using Flask in our test.mongo.py
 
-Flask initialization
+####Flask initialization
 
 ```
 from flask import Flask
@@ -20,7 +20,7 @@ app.config['SECRET_KEY'] = 'secret!'
 The code above is for Flask to receive the name we gave and begin
 to find resources. 
 
-Flask Routing
+####Flask Routing
 ```
 @app.route('/')
 def index():
@@ -42,7 +42,7 @@ def login():
 The flask routing helps to keep track of request path. From the code above,
 if the path is / which is the root path, it will call def index() function.
 
-Flask render_template
+####Flask render_template
 ```
 test_mongo.py
 def register():
@@ -57,11 +57,19 @@ The render_template are able to accomplish a lot of things for us
 We are able to respond the users' request with the html and we are able 
 to incorporate jinja experssion.
 
-Flask url_for
+####Flask url_for
 
 This attribute helps to redirect to another path
 
-**License**
+
+##**How does this technology accomplish what it does?**
+
+####Flask initialization
+According to 
+
+    
+
+##**License**
 
 Copyright 2010 Pallets
 
