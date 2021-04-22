@@ -68,6 +68,7 @@
     <li><a href="{{ url_for('login') }}">Please Login.</a>
     <li><a href="{{ url_for('register') }}">Please Register.</a>
     <li><a href="{{ url_for('chatroom') }}">Chatroom.</a>
+    <li><a href="{{ url_for('setting') }}">setting.</a>
 
     <li>Hi {% if current_user.is_authenticated %}{{ current_user.username }}{%else%}Please login to enter chatroom{%endif %}!</li>
 

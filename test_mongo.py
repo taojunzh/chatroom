@@ -1,25 +1,32 @@
 
-from flask import Flask, jsonify, render_template,redirect,url_for,request,session
+from flask import Flask, jsonify, render_template,redirect,url_for,request,session, flash, send_from_directory
 
 from flask_login import current_user, login_user, login_required, logout_user, LoginManager
 from flask_socketio import SocketIO,join_room,leave_room
+
 import requests
 import datetime
 from database import registration,verify,get_userinfo,validate_dis,validate_user
 import bcrypt
+import os
 from pymongo.errors import DuplicateKeyError
 
 #from passlib.hash import pbkdf2_sha256
 #chat_history_database.drop()
-
+FolderPath = 'C:\\Users\\Liang\\Desktop\\cse312Project\\chatroom\\static\\Files'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = FolderPath
 app.config['SECRET_KEY'] = 'secret!'
+
 socketio = SocketIO(app)
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
 Online_Users = []
+
+
 
 
 @app.route('/')
@@ -83,6 +90,26 @@ def login():
 # def chatroom():
 #     return render_template('chatroom.html')
 
+@app.route('/setting', methods = ['GET', 'POST'])
+def setting():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+
+        if file and ('.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS): #check for picture extensions
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+            return redirect(url_for('uploaded_file', filename=file.filename))
+    return render_template('setting.html')
+
+@app.route('/chatroom/static/Files/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @socketio.on('connect')
 def connect_handler():
