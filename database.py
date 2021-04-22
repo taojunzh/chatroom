@@ -5,6 +5,7 @@ myclient = pymongo.MongoClient("mongodb://mongo:27017")  #for docker
 db = myclient.user_login_system
 import bcrypt
 
+
 def registration(display,username,password,salt):
     user = {'dis_name':display,'_id':username,'pass':password,'pass_salt':salt}
     db.users.insert_one(user)

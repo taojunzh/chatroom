@@ -24,7 +24,11 @@ Online_Users = []
 
 @app.route('/')
 def index():
-        return render_template('index.html')
+    if current_user.is_authenticated:
+        if current_user.display not in Online_Users:
+            Online_Users.append(current_user.display)
+    return render_template('index.html')
+
 
 
 @app.route("/logout/")
@@ -37,10 +41,7 @@ def logout():
 
 @app.route('/chatroom')
 def chatroom():
-    if len(Online_Users) > 0:
-        return render_template('chatroom.html')
-    else:
-        return redirect(url_for('index'))
+    return render_template('chatroom.html')
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -73,7 +74,6 @@ def login():
         user = get_userinfo(username)
         if user and verify(username,password):
             login_user(user)
-            Online_Users.append(current_user.display)
             return redirect(url_for('index'))
         else:
             message ="Invalid username or password. Please try again."
