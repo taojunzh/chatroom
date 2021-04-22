@@ -3,6 +3,9 @@ import pymongo
 myclient = pymongo.MongoClient("mongodb://mongo:27017")  #for docker
 
 db = myclient.user_login_system
+db.collection.deleteMany(
+   {}
+)
 import bcrypt
 
 def registration(display,username,password,salt):
