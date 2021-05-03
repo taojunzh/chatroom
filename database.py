@@ -1,11 +1,9 @@
 from User import User
 import pymongo
-myclient = pymongo.MongoClient("mongodb://mongo:27017")  #for docker
-
+# myclient = pymongo.MongoClient("mongodb://mongo:27017")  #for docker
+myclient = pymongo.MongoClient("mongodb+srv://ytc:kevin@cluster0.35txz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 db = myclient.user_login_system
-db.collection.deleteMany(
-   {}
-)
+
 import bcrypt
 
 

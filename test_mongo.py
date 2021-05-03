@@ -169,7 +169,7 @@ def load_user(user_id):
 
 if __name__ == '__main__':
 
-    # socketio.run(app)
+    socketio.run(app)
 
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
+    # socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
 
