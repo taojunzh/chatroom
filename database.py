@@ -14,7 +14,9 @@ def storevote(vote):
     votedb.voting.insert_one(voting)
 
 def countvote(vote):
-    count = votedb.voting.find_one({'vote' +str(vote): 1}).count
+    count = 0
+    if votedb.voting.find({'vote' +str(vote): 1}):
+        count = votedb.voting.find({'vote' +str(vote): 1}).count()
     return count
 
 def registration(display,username,password,salt):

@@ -116,7 +116,6 @@ def uploaded_file(filename):
 def connect_handler():
     if current_user.is_authenticated:
         user = current_user.display
-        print(Online_Users)
         socketio.emit('add user',(user,Online_Users))
     else:
         return False
@@ -127,10 +126,12 @@ def disconnect():
 
 @socketio.on('vote')
 def voting(input):
-    vote = storevote(input)
+    storevote(input)
+
     result1 = countvote(1)
     result2 = countvote(2)
-    socketio.emit('voting bar',{'yes':result1,'no':result2})
+    print(result1,result2)
+    socketio.emit('voting bar',(result1,result2),broadcast =True)
 
 @socketio.on("message")
 def message(data):
