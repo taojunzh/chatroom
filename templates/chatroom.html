@@ -8,6 +8,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 </head>
 <style>
   * {
@@ -87,6 +88,14 @@
       <input id="youtube-link" type="text" name="youtube">
       <button onclick="shareLink()">Share</button>
     </div>
+    <button id="voteyes">Vote Yes</button>
+    <button id="voteno"> Vote No </button>
+    <progress id="file" value="32" max="100"> 32% </progress>
+<!--    <div class ="voting bar">-->
+<!--      <div id ="yes" class="progress-bar progress-bar-success" style = "width: 50%"></div>-->
+<!--      <div id ="no" class="progress-bar progress-bar-warning progress-bar-striped" style = "width: 50%"></div>-->
+<!--    </div>-->
+
   </footer>
 
   <script src ="{{url_for('static',filename ='function.js')}}">

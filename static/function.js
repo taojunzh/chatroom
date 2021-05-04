@@ -85,6 +85,6 @@
         if(!target) { return; } // If element doesn't exist
     }
     if (target.tagName === 'LI'){
-      alert(target.id); // Check if the element is a LI
+      alert(target.value); // Check if the element is a LI
     }
 });

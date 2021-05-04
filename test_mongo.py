@@ -6,7 +6,7 @@ from flask_socketio import SocketIO,join_room,leave_room
 
 import requests
 import datetime
-from database import registration,verify,get_userinfo,validate_dis,validate_user
+from database import registration,verify,get_userinfo,validate_dis,validate_user,storevote,countvote
 import bcrypt
 import os
 from pymongo.errors import DuplicateKeyError
@@ -47,6 +47,7 @@ def logout():
 
 
 @app.route('/chatroom')
+@login_required
 def chatroom():
     return render_template('chatroom.html')
 
@@ -123,6 +124,13 @@ def connect_handler():
 @socketio.on("disconnect")
 def disconnect():
     logout_user()
+
+@socketio.on('vote')
+def voting(input):
+    vote = storevote(input)
+    result1 = countvote(1)
+    result2 = countvote(2)
+    socketio.emit('voting bar',{'yes':result1,'no':result2})
 
 @socketio.on("message")
 def message(data):

@@ -3,9 +3,19 @@ import pymongo
 # myclient = pymongo.MongoClient("mongodb://mongo:27017")  #for docker
 myclient = pymongo.MongoClient("mongodb+srv://ytc:kevin@cluster0.35txz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 db = myclient.user_login_system
+votedb = myclient.vote
+onlinedb = myclient.online
 
 import bcrypt
 
+
+def storevote(vote):
+    voting = {'vote' + str(vote): 1}
+    votedb.voting.insert_one(voting)
+
+def countvote(vote):
+    count = votedb.voting.find_one({'vote' +str(vote): 1}).count
+    return count
 
 def registration(display,username,password,salt):
     user = {'dis_name':display,'_id':username,'pass':password,'pass_salt':salt}
