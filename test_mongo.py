@@ -6,7 +6,7 @@ from flask_socketio import SocketIO,join_room,leave_room
 
 import requests
 import datetime
-from database import registration,verify,get_userinfo,validate_dis,validate_user,storevote,countvote
+from database import *
 import bcrypt
 import os
 from pymongo.errors import DuplicateKeyError
@@ -116,7 +116,12 @@ def uploaded_file(filename):
 def connect_handler():
     if current_user.is_authenticated:
         user = current_user.display
-        socketio.emit('add user',(user,Online_Users))
+        # print(Online_Users)
+        # print(request.sid)
+        # print(current_user.get_id())
+        result = intializevote()
+        print(result)
+        socketio.emit('add user',(user,Online_Users,result))
     else:
         return False
 
@@ -132,6 +137,13 @@ def voting(input):
     result2 = countvote(2)
     print(result1,result2)
     socketio.emit('voting bar',(result1,result2),broadcast =True)
+
+@socketio.on("vote result")
+def resulthandler(result):
+    print(100)
+    print(result)
+    storevoteresult(result)
+
 
 @socketio.on("message")
 def message(data):

@@ -1,7 +1,7 @@
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     var firsttime = true;
     var username ='';
-    socket.on('add user',function (user,Online_User) {
+    socket.on('add user',function (user,Online_User,result) {
         console.log("connected");
       if(firsttime){
         username = user;
@@ -11,10 +11,17 @@
       for (var i =0; i<Online_User.length; i++){
         $('#online').append('<li>' + Online_User[i] + '</li>');
       }
+      document.getElementById("votebar").value = result;
+      var span = document.getElementById("percentage");
+      span.innerHTML = result.toString() + "% yes";
     });
     socket.on('voting bar',function (result1,result2) {
         var total = result1 + result2;
-        document.getElementById("votebar").value = Math.round(result1 / total *100);
+        var result = Math.round(result1 / total *100);
+        document.getElementById("votebar").value = result;
+        var span = document.getElementById("percentage");
+        span.innerHTML = result.toString() + "% yes";
+        socket.emit("vote result", result )
     });
     socket.on('message', data => {
       let msg = "<p> [" + data["time"] + "] <br>" + data['username'];
@@ -76,21 +83,8 @@
       const ele=document.getElementById("display-message").lastChild;
       ele.scrollIntoView()
     }
-    function addMessage(message) {
-      const chatMessage = JSON.parse(message.data);
-      let chat = document.getElementById('chat');
-      chat.innerHTML += "<b>" + chatMessage['username'] + "</b>: " + chatMessage["comment"] + "<br/>";
-    }
-
-
-    var ul = document.getElementById("online");
-    ul.addEventListener('click', function (e) {
-    var target = e.target; // Clicked element
-    while (target && target.parentNode !== ul) {
-        target = target.parentNode; // If the clicked element isn't a direct child
-        if(!target) { return; } // If element doesn't exist
-    }
-    if (target.tagName === 'LI'){
-      alert(target.value); // Check if the element is a LI
-    }
-});
+    // function addMessage(message) {
+    //   const chatMessage = JSON.parse(message.data);
+    //   let chat = document.getElementById('chat');
+    //   chat.innerHTML += "<b>" + chatMessage['username'] + "</b>: " + chatMessage["comment"] + "<br/>";
+    // }

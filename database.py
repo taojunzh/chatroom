@@ -8,6 +8,15 @@ onlinedb = myclient.online
 
 import bcrypt
 
+def intializevote():
+    result= votedb.result.find_one({'_id':1})
+    if not result:
+        votedb.result.insert_one({'_id':1,'result':0})
+        return 0
+    else:
+        return result['result']
+        # get_voteresult()
+
 
 def storevote(vote):
     voting = {'vote' + str(vote): 1}
@@ -18,6 +27,13 @@ def countvote(vote):
     if votedb.voting.find({'vote' +str(vote): 1}):
         count = votedb.voting.find({'vote' +str(vote): 1}).count()
     return count
+
+def storevoteresult(result):
+    print(result)
+    db = votedb.result.replace_one({"_id" :1},
+                            {"_id":1, 'result':result}
+                              )
+    print(db)
 
 def registration(display,username,password,salt):
     user = {'dis_name':display,'_id':username,'pass':password,'pass_salt':salt}
