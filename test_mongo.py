@@ -1,5 +1,5 @@
 
-from flask import Flask, jsonify, render_template,redirect,url_for,request,session, flash, send_from_directory
+from flask import Flask, render_template,redirect,url_for,request, flash, send_from_directory
 
 from flask_login import current_user, login_user, login_required, logout_user, LoginManager
 from flask_socketio import SocketIO,join_room,leave_room
