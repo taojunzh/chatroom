@@ -29,11 +29,9 @@ def countvote(vote):
     return count
 
 def storevoteresult(result):
-    print(result)
     db = votedb.result.replace_one({"_id" :1},
                             {"_id":1, 'result':result}
                               )
-    print(db)
 
 def registration(display,username,password,salt):
     user = {'dis_name':display,'_id':username,'pass':password,'pass_salt':salt}

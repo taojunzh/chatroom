@@ -42,6 +42,8 @@ def index():
 @login_required
 def logout():
     Online_Users.remove(current_user.display)
+
+    socketio.emit("user logout",Online_Users)
     logout_user()
     return redirect(url_for('index'))
 
@@ -81,33 +83,15 @@ def login():
         password = request.form.get('password').encode('utf-8')
         user = get_userinfo(username)
         if user and verify(username,password):
-            login_user(user)
-            return redirect(url_for('index'))
+            if user.display in Online_Users:
+                message = "Already logged in"
+            else:
+                login_user(user)
+                return redirect(url_for('index'))
         else:
             message ="Invalid username or password. Please try again."
     return render_template('login.html',error = message)
 
-# @app.route("/chatroom", methods=["GET", "POST"])
-# def chatroom():
-#     return render_template('chatroom.html')
-
-# @app.route('/setting', methods = ['GET', 'POST'])
-# @login_required
-# def setting():
-#     if request.method == 'POST':
-#         if 'file' not in request.files:
-#             flash('No file part')
-#             return redirect(request.url)
-#         file = request.files['file']
-#
-#         if file.filename == '':
-#             flash('No selected file')
-#             return redirect(request.url)
-#
-#         if file and ('.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS): #check for picture extensions
-#             file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-#             return redirect(url_for('uploaded_file', filename=file.filename))
-#     return render_template('setting.html')
 @app.route('/setting', methods=['GET', 'POST'])
 @login_required
 def setting():
@@ -134,9 +118,6 @@ def setting():
 @app.route('/files/<filename>')
 def file(filename):
     return mongo.send_file(filename)
-# @app.route('/chatroom/static/Files/<filename>')
-# def uploaded_file(filename):
-#     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @socketio.on('connect')
 def connect_handler():
@@ -146,10 +127,10 @@ def connect_handler():
         # print(request.sid)
         # print(current_user.get_id())
         result = intializevote()
-        user_row = mongo.db.images.find_one_or_404({'username': user})
-        image_name = user_row['profile_image_name']
-        print(result)
-        socketio.emit('add user',(user,Online_Users,result,image_name))
+        # user_row = mongo.db.images.find_one_or_404({'username': user})
+        # image_name = user_row['profile_image_name']
+        # print(result)
+        socketio.emit('add user',(user,Online_Users,result))
     else:
         return False
 

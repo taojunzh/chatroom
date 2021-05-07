@@ -17,8 +17,11 @@ login_manager.login_view = 'login'
 login_manager.init_app(app)
 ```    
 The above code is to configurate the flask application to work with flask login
-
 source code: [Login-manager](https://flask-login.readthedocs.io/en/latest/_modules/flask_login/login_manager.html#LoginManager)
+This login-manager is an instance that holds the setting for logged in. It will bind
+to the application with .init_app(app)
+The login_manager.login_view works when a user access the [login_required](https://flask-login.readthedocs.io/en/latest/#flask_login.login_required)
+view without begin logged in. The user will redirect to the path login
 
 ``` 
 @login_manager.user_loader
@@ -49,8 +52,8 @@ class User:
         return self.username
 ``` 
 In order to use the login functionality, we need to parse a User class to login_user
-function from flask-login. This User class need to have above functions. Having
-is_authenticated function make sure the users who is authenticated can be recognized 
+function from flask-login. This User class need to have above properties: is_authenticated(),
+is_active() and get_id(). Having is_authenticated function make sure the users who is authenticated can be recognized 
 by the [login_required](https://flask-login.readthedocs.io/en/latest/_modules/flask_login/utils.html#login_required) 
 which is a function to verify if a user is logged in. Thus, if a user wants to log
 out, it needs to fulfill login_required first.
@@ -67,16 +70,5 @@ copies of the Software, and to permit persons to whom the
 Software is furnished to do so, subject to the following
 conditions:
 
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-The license is MIT 
+The license is MIT so we are able to read,write, modify the code for free and
+we can also use this technology for commercial purpose.
