@@ -3,13 +3,14 @@ from flask import Flask, render_template,redirect,url_for,request, flash, send_f
 
 from flask_login import current_user, login_user, login_required, logout_user, LoginManager
 from flask_socketio import SocketIO,join_room,leave_room
+from flask_pymongo import PyMongo
 
 import requests
 import datetime
 from database import *
 import bcrypt
 import os
-from pymongo.errors import DuplicateKeyError
+
 
 #from passlib.hash import pbkdf2_sha256
 #chat_history_database.drop()
@@ -17,17 +18,16 @@ FolderPath = 'C:\\Users\\Liang\\Desktop\\cse312Project\\chatroom\\static\\Files'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = Flask(__name__)
+app.config['MONGO_URI'] = myclient = "mongodb+srv://ytc:kevin@cluster0.35txz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
 app.config['UPLOAD_FOLDER'] = FolderPath
 app.config['SECRET_KEY'] = 'secret!'
 
+mongo = PyMongo(app)
 socketio = SocketIO(app)
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
 Online_Users = []
-
-
-
 
 @app.route('/')
 def index():
@@ -91,26 +91,52 @@ def login():
 # def chatroom():
 #     return render_template('chatroom.html')
 
-@app.route('/setting', methods = ['GET', 'POST'])
+# @app.route('/setting', methods = ['GET', 'POST'])
+# @login_required
+# def setting():
+#     if request.method == 'POST':
+#         if 'file' not in request.files:
+#             flash('No file part')
+#             return redirect(request.url)
+#         file = request.files['file']
+#
+#         if file.filename == '':
+#             flash('No selected file')
+#             return redirect(request.url)
+#
+#         if file and ('.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS): #check for picture extensions
+#             file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+#             return redirect(url_for('uploaded_file', filename=file.filename))
+#     return render_template('setting.html')
+@app.route('/setting', methods=['GET', 'POST'])
+@login_required
 def setting():
     if request.method == 'POST':
         if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['file']
-
-        if file.filename == '':
-            flash('No selected file')
             return redirect(request.url)
 
-        if file and ('.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS): #check for picture extensions
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-            return redirect(url_for('uploaded_file', filename=file.filename))
+        if request.files['file'].filename == '':
+            return redirect(request.url)
+
+        if 'file' in request.files:
+            profile_image = request.files['file']
+            if profile_image and ('.' in profile_image.filename and profile_image.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS):
+                if mongo.db.images.find_one({'username': current_user.display}):
+                    mongo.save_file(profile_image.filename, profile_image)
+                    mongo.db.images.replace_one({'username': current_user.display},
+                                                {'username': current_user.display, 'profile_image_name': profile_image.filename})
+                else:
+                    mongo.save_file(profile_image.filename, profile_image)
+                    mongo.db.images.insert_one(
+                        {'username': current_user.display, 'profile_image_name': profile_image.filename})
     return render_template('setting.html')
 
-@app.route('/chatroom/static/Files/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+@app.route('/files/<filename>')
+def file(filename):
+    return mongo.send_file(filename)
+# @app.route('/chatroom/static/Files/<filename>')
+# def uploaded_file(filename):
+#     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @socketio.on('connect')
 def connect_handler():
@@ -120,8 +146,10 @@ def connect_handler():
         # print(request.sid)
         # print(current_user.get_id())
         result = intializevote()
+        user_row = mongo.db.images.find_one_or_404({'username': user})
+        image_name = user_row['profile_image_name']
         print(result)
-        socketio.emit('add user',(user,Online_Users,result))
+        socketio.emit('add user',(user,Online_Users,result,image_name))
     else:
         return False
 
