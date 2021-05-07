@@ -70,5 +70,5 @@ copies of the Software, and to permit persons to whom the
 Software is furnished to do so, subject to the following
 conditions:
 
-The license is MIT so we are able to read,write, modify the code for free and
+The license is [MIT](https://github.com/maxcountryman/flask-login/blob/main/LICENSE) so we are able to read,write, modify the code for free and
 we can also use this technology for commercial purpose.

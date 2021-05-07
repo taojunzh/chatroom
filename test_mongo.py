@@ -1,5 +1,5 @@
 
-from flask import Flask, render_template,redirect,url_for,request, flash, send_from_directory
+from flask import Flask, render_template,redirect,url_for,request
 
 from flask_login import current_user, login_user, login_required, logout_user, LoginManager
 from flask_socketio import SocketIO,join_room,leave_room
@@ -9,17 +9,12 @@ import requests
 import datetime
 from database import *
 import bcrypt
-import os
 
 
-#from passlib.hash import pbkdf2_sha256
-#chat_history_database.drop()
-FolderPath = 'C:\\Users\\Liang\\Desktop\\cse312Project\\chatroom\\static\\Files'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = Flask(__name__)
 app.config['MONGO_URI'] = myclient = "mongodb+srv://ytc:kevin@cluster0.35txz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-app.config['UPLOAD_FOLDER'] = FolderPath
 app.config['SECRET_KEY'] = 'secret!'
 
 mongo = PyMongo(app)
@@ -27,13 +22,19 @@ socketio = SocketIO(app)
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
-Online_Users = []
+Online_Users = {}
 
 @app.route('/')
 def index():
     if current_user.is_authenticated:
-        if current_user.display not in Online_Users:
-            Online_Users.append(current_user.display)
+        # if current_user.display not in Online_Users:
+            # Online_Users.append(current_user.display)
+        if mongo.db.images.find_one({'username': current_user.display}):
+            user_row = mongo.db.images.find_one({'username': current_user.display})
+            image_name = user_row['profile_image_name']
+            Online_Users[current_user.display] = image_name
+        else:
+            Online_Users[current_user.display] = ''
     return render_template('index.html')
 
 
@@ -41,9 +42,10 @@ def index():
 @app.route("/logout/")
 @login_required
 def logout():
-    Online_Users.remove(current_user.display)
+    # Online_Users.remove(current_user.display)
+    del Online_Users[current_user.display]
 
-    socketio.emit("user logout",Online_Users)
+    # socketio.emit("user logout", Online_Users)
     logout_user()
     return redirect(url_for('index'))
 
@@ -83,7 +85,7 @@ def login():
         password = request.form.get('password').encode('utf-8')
         user = get_userinfo(username)
         if user and verify(username,password):
-            if user.display in Online_Users:
+            if user.display in Online_Users.keys():
                 message = "Already logged in"
             else:
                 login_user(user)
@@ -113,6 +115,7 @@ def setting():
                     mongo.save_file(profile_image.filename, profile_image)
                     mongo.db.images.insert_one(
                         {'username': current_user.display, 'profile_image_name': profile_image.filename})
+            return redirect(url_for('index'))
     return render_template('setting.html')
 
 @app.route('/files/<filename>')
@@ -123,20 +126,15 @@ def file(filename):
 def connect_handler():
     if current_user.is_authenticated:
         user = current_user.display
-        # print(Online_Users)
-        # print(request.sid)
-        # print(current_user.get_id())
         result = intializevote()
-        user_row = mongo.db.images.find_one_or_404({'username': user})
-        image_name = user_row['profile_image_name']
-        # print(result)
-        socketio.emit('add user',(user,Online_Users,result,image_name))
+
+        socketio.emit('add user',(user,Online_Users,result))
     else:
         return False
 
-@socketio.on("disconnect")
-def disconnect():
-    logout_user()
+# @socketio.on("disconnect")
+# def disconnect():
+#     logout_user()
 
 @socketio.on('vote')
 def voting(input):
