@@ -127,10 +127,10 @@ def connect_handler():
         # print(request.sid)
         # print(current_user.get_id())
         result = intializevote()
-        # user_row = mongo.db.images.find_one_or_404({'username': user})
-        # image_name = user_row['profile_image_name']
+        user_row = mongo.db.images.find_one_or_404({'username': user})
+        image_name = user_row['profile_image_name']
         # print(result)
-        socketio.emit('add user',(user,Online_Users,result))
+        socketio.emit('add user',(user,Online_Users,result,image_name))
     else:
         return False
 
@@ -144,13 +144,12 @@ def voting(input):
 
     result1 = countvote(1)
     result2 = countvote(2)
-    print(result1,result2)
+    # print(result1,result2)
     socketio.emit('voting bar',(result1,result2),broadcast =True)
 
 @socketio.on("vote result")
 def resulthandler(result):
-    print(100)
-    print(result)
+    # print(result)
     storevoteresult(result)
 
 

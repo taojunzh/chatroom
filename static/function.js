@@ -1,21 +1,21 @@
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     var firsttime = true;
     var username ='';
-    socket.on('add user',function (user,Online_User,result) {
+    socket.on('add user',function (user,Online_User,result,image_name) {
         console.log("connected");
       if(firsttime){
         username = user;
         firsttime = false
       }
       $('#online').empty();
-      for (var i =0; i<Online_User.length; i++){
-        $('#online').append('<li>' + Online_User[i] + '</li>');
-      }
       // for (var i =0; i<Online_User.length; i++){
-      //   $('#online').append('<li>' + '< img src="/files/' + image_name + ' width="35" height="35">' +
-      //   Online_User[i] +
-      //   '</li>');
+      //   $('#online').append('<li>' + Online_User[i] + '</li>');
       // }
+      for (var i =0; i<Online_User.length; i++){
+        $('#online').append('<li>' + '<img src="/files/' + image_name + ' "width="35" height="35">' +
+        Online_User[i] +
+        '</li>');
+      }
       document.getElementById("votebar").value = result;
       var span = document.getElementById("percentage");
       span.innerHTML = result.toString() + "% yes";
