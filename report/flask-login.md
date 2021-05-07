@@ -1,15 +1,15 @@
-#Flask Login
+#F lask Login
 [Flask-login](https://flask-login.readthedocs.io/en/latest/)
 
-##Flask Login(Server side)
+## Flask Login(Server side)
 
-###what does this technology accomplish for you ?
+### what does this technology accomplish for you ?
     
 This library helps us to manager the users who logged in. We are able to create a
 user with User class to create a user object. Thus, we can use this user object to 
 check if the user is authenticated, logined and logout the user.
 
-###How does this technology accomplish what it does?
+### How does this technology accomplish what it does?
 
 ```
 login_manager = LoginManager()
@@ -55,7 +55,7 @@ by the [login_required](https://flask-login.readthedocs.io/en/latest/_modules/fl
 which is a function to verify if a user is logged in. Thus, if a user wants to log
 out, it needs to fulfill login_required first.
 
-###What license(s) or terms of service apply to this technology?
+### What license(s) or terms of service apply to this technology?
 Copyright (c) 2011 Matthew Frazier
 
 Permission is hereby granted, free of charge, to any person
