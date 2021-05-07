@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Chatroom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.min.js"></script>
+</head>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  header {
+    text-align: center;
+  }
+
+  section {
+    display: -webkit-flex;
+    display: flex;
+  }
+
+  nav {
+    -webkit-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    background: #ccc;
+    padding: 20px;
+  }
+
+  nav ul {
+    list-style-type: none;
+    padding: 0
+  }
+
+  article {
+    -webkit-flex: 3;
+    -ms-flex: 3;
+    flex: 3;
+    padding: 10px;
+  }
+
+  footer {
+    text-align: center;
+  }
+
+  .scrollable {
+    height: 550px;
+    overflow-y: auto;
+  }
+
+  @media (max-width: 600px) {
+    section {
+      -webkit-flex-direction: column;
+      flex-direction: column;
+    }
+  }
+</style>
+
+<body>
+  <header>
+    <h2>Chatroom</h2>
+  </header>
+
+  <section>
+    <nav>Online Users:
+      <ul id="online">
+      </ul>
+    </nav>
+
+    <article class="scrollable" id='display-message'>Messages:
+    </article>
+  </section>
+
+
+  <footer>
+    <div>
+      <label for="chat-comment">Message: </label>
+      <input id="chat-comment" type="text" name="comment">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+    <div>
+      <label for="youtube-link">Share Your YouTube Link: </label>
+      <input id="youtube-link" type="text" name="youtube">
+      <button onclick="shareLink()">Share</button>
+    </div>
+  </footer>
+
+  <script src ="{{url_for('static',filename ='function.js')}}">
+
+
+  </script>
+</body>
+</html>

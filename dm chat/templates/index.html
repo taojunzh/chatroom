@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+<style>
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #87CEFA;
+    position: -webkit-sticky; /* Safari */
+    position: sticky;
+    width: 100%;
+  }
+
+  li {
+    display: inline;
+    border-right: 1px solid #bbb;
+    float: left;
+  }
+
+  li a {
+    display: block;
+    color: #FF69B4;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+  }
+
+  li a:hover {
+    background-color: #111;
+  }
+
+  li:last-child {
+    border-right: none;
+  }
+
+  .active {
+  background-color: #4CAF50;
+  }
+
+  html {
+  background-image: url("../static/pic/Bull.jpg");
+  width:100%;
+  height:100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  position:relative;
+  }
+
+  header {
+  background-color: black;
+  text-align: center;
+  font-size: 36px;
+  color: pink;
+  }
+
+</style>
+    <meta charset="UTF-8">
+    <title>Home</title>
+</head>
+<body>
+  <header>Welcome to iCanBB! Start your conversation!</header>
+  <ul>
+    <li><a href="{{ url_for('index') }}">Home</a>
+    <li><a href="{{ url_for('login') }}">Please Login.</a>
+    <li><a href="{{ url_for('register') }}">Please Register.</a>
+    <li><a href="{{ url_for('chatroom') }}">Chatroom.</a>
+    <li><a href="{{ url_for('setting') }}">setting.</a>
+
+    <li>Hi {% if current_user.is_authenticated %}{{ current_user.username }}{%else%}Please login to enter chatroom{%endif %}!</li>
+
+  </ul>
+  <header>More Functionalities coming soon!</header>
+  <header>Do you like Black and Pink?</header>
+
+    <ul>
+        {% for room in rooms %}
+            <li><a href="/rooms/{{ room._id.room_id }}">{{ room.room_name }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
