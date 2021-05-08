@@ -1,4 +1,6 @@
 from User import User
+from datetime import datetime
+from bson import ObjectId
 import pymongo
 # myclient = pymongo.MongoClient("mongodb://mongo:27017")  #for docker
 myclient = pymongo.MongoClient("mongodb+srv://ytc:kevin@cluster0.35txz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
@@ -7,6 +9,38 @@ votedb = myclient.vote
 onlinedb = myclient.online
 
 import bcrypt
+
+private_room_db = myclient.get_database("private_room_db")
+db_rooms = private_room_db.get_collection("rooms")
+room_members = private_room_db.get_collection("room_members")
+
+def add_room(room_name, owner):
+    room_id = db_rooms.insert_one(
+        {'name': room_name, 'owner': owner}).inserted_id
+    room_members.insert_one(
+        {'_id': {'room_id': ObjectId(room_id), 'username': owner}, 'room_name': room_name, 'added_by': owner})
+    return room_id
+
+def delete_room(room_id):
+    #db_rooms.remove({'_id': ObjectId(room_id)})
+    room_members.remove( {'_id': ObjectId(room_id)})
+
+def get_room(room_id):
+    return db_rooms.find_one({'_id': ObjectId(room_id)})
+
+def add_room_members(room_id, room_name, usernames, added_by):
+    room_members.insert_many(
+        [{'_id': {'room_id': ObjectId(room_id), 'username': username}, 'room_name': room_name, 'added_by': added_by} for username in usernames])
+
+def get_room_members(room_id):
+    return list(room_members.find({'_id.room_id': ObjectId(room_id)}))
+
+def get_rooms_for_user(username):
+    return list(room_members.find({'_id.username': username}))
+
+def is_room_member(room_id, username):
+    return room_members.count_documents({'_id': {'room_id': ObjectId(room_id), 'username': username}})
+
 
 def intializevote():
     result= votedb.result.find_one({'_id':1})

@@ -135,6 +135,47 @@ def connect_handler():
 # @socketio.on("disconnect")
 # def disconnect():
 #     logout_user()
+@app.route('/create-room/', methods=['GET', 'POST'])
+@login_required
+def create_room():
+    message = ''
+    if request.method == 'POST':
+        room_name = request.form.get('room_name')
+        usernames = [username for username in request.form.get('members').split(' ')]
+        if len(room_name) >= 1:
+            room_id = add_room(room_name, current_user.username)
+            if current_user.username in usernames:
+                usernames.remove(current_user.username)
+            add_room_members(room_id, room_name, usernames, current_user.username)
+            return redirect(url_for('view_room', room_id=room_id))
+        else:
+            message = "Creating room Failed: Please include a room name "
+    return render_template('create_room.html', message=message)
+
+@app.route('/rooms/<room_id>/')
+@login_required
+def view_room(room_id):
+    room = get_room(room_id)
+    if room and is_room_member(room_id, current_user.username):
+        room_members = get_room_members(room_id)
+        return render_template('view_room.html', username=current_user.username, room=room, room_members=room_members)
+    else:
+        return "Join room failed", 404
+
+@socketio.on('send_message')
+def handle_send_message_event(data):
+    data["message"] = HTMLescape(data["message"])
+    socketio.emit('receive_message', data, room = data['room'])
+
+@socketio.on('join_room')
+def handle_join_room_event(data):
+    join_room(data['room'])
+    socketio.emit('join_room_announcement', data, room = data['room'])
+
+@socketio.on('leave_room')
+def handle_leave_room_event(data):
+    leave_room(data['room'])
+    socketio.emit('leave_room_announcement', data, room = data['room'])
 
 @socketio.on('vote')
 def voting(input):
@@ -199,4 +240,3 @@ if __name__ == '__main__':
     socketio.run(app)
 
     # socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
-
