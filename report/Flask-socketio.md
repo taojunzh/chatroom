@@ -121,5 +121,71 @@ Socketio.on is a decorator. It is going to trigger an event handler to properly 
 
 When socketio.on('connect') is triggered, it means that the web browser wants to establish a WebSocket connection. Flask-socketio will handle the connection and save the session of the browser.
 
+Join_room and leave_room are used in private room reatures
+This feature takes advanfunction uses “rooms”. All clients are assigned a room along with
+session ID of the connection when they connect, named with the session ID of the connection.
+The session ID is obtained from request.sid. The advantage of using rooms is privacy. The user
+can only receive messages from the rooms they are in, but not from other rooms. My app uses
+join_room when the users join the room and calls leave_room when users leave the room. The
+rest is the job of socket
+
+Source code:
+def
+join_room(room,
+sid=None,
+namespace=None):
+ """Join a room.
+ This function puts the user in a room, under the current
+namespace. The
+ user and the namespace are obtained from the event context.
+This is a
+ function that can only be called from a SocketIO event
+handler. Example::
+ @socketio.on('join')
+ def on_join(data):
+ username = session['username']
+ room = data['room']
+ join_room(room)
+ send(username + ' has entered the room.', room=room)
+ :param room: The name of the room to join.
+ :param sid: The session id of the client. If not provided,
+the client is
+ obtained from the request context.
+ :param namespace: The namespace for the room. If not
+provided, the
+ namespace is obtained from the request
+context.
+ """
+ socketio = flask.current_app.extensions['socketio']
+ sid = sid or flask.request.sid
+ namespace = namespace or flask.request.namespace
+ socketio.server.enter_room(sid, room, namespace=namespace)
+def leave_room(room, sid=None, namespace=None):
+ """Leave a room.
+ This function removes the user from a room, under the current
+namespace.
+ The user and the namespace are obtained from the event
+context. Example::
+ @socketio.on('leave')
+ def on_leave(data):
+ username = session['username']
+ room = data['room']
+ leave_room(room)
+ send(username + ' has left the room.', room=room)
+ :param room: The name of the room to leave.
+ :param sid: The session id of the client. If not provided,
+the client is
+ obtained from the request context.
+ :param namespace: The namespace for the room. If not
+provided, the
+ namespace is obtained from the request
+context.
+ """
+ socketio = flask.current_app.extensions['socketio']
+ sid = sid or flask.request.sid
+ namespace = namespace or flask.request.namespace
+ socketio.server.leave_room(sid, room, namespace=namespace)
+
+
 ##What license(s) or terms of service apply to this technology?
 License: MIT License (MIT)
