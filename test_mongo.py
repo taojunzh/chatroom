@@ -14,7 +14,8 @@ import bcrypt
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = Flask(__name__)
-app.config['MONGO_URI'] = myclient = "mongodb+srv://ytc:kevin@cluster0.35txz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+app.config['MONGO_URI'] = myclient = "mongodb://mongo:27017/myFirstDatabase"
+# app.config['MONGO_URI'] = myclient = "mongodb+srv://ytc:kevin@cluster0.35txz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
 app.config['SECRET_KEY'] = 'secret!'
 
 mongo = PyMongo(app)
@@ -196,7 +197,6 @@ def load_user(user_id):
 
 if __name__ == '__main__':
 
-    socketio.run(app)
-
-    # socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
+    # socketio.run(app)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
 
