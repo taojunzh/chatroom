@@ -1,9 +1,9 @@
-#Flask SocketIO
+# Flask SocketIO
 
 [Flask-SocketIO Documentations](https://flask-socketio.readthedocs.io/en/latest/)
 [Flask-SocketIO Source Code](https://github.com/miguelgrinberg/Flask-SocketIO)
 
-##What does this technology (library/framework/service) accomplish for you?
+## What does this technology (library/framework/service) accomplish for you?
 Flask-SocketIO gives Flask applications access to low latency bi-directional communications between the clients and the server.
 
 ```
@@ -18,7 +18,7 @@ def voting(input):
 ```
 When using SocketIO, events are received by both parties through WebSockets. Our code use @socketio.on("vote") to create a server-side event handler for “string” event. Once we are done with the data, we can use socketio.emit to notify the clients.
 
-##How does the code do what it does?
+## How does the code do what it does?
 [code source](https://github.com/miguelgrinberg/Flask-SocketIO/blob/master/flask_socketio/__init__.py)
 ```
 def emit(event, *args, **kwargs):
@@ -121,5 +121,5 @@ Socketio.on is a decorator. It is going to trigger an event handler to properly 
 
 When socketio.on('connect') is triggered, it means that the web browser wants to establish a WebSocket connection. Flask-socketio will handle the connection and save the session of the browser.
 
-##What license(s) or terms of service apply to this technology?
+## What license(s) or terms of service apply to this technology?
 License: MIT License (MIT)
