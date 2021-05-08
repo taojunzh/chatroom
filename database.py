@@ -1,13 +1,37 @@
 from User import User
 import pymongo
-myclient = pymongo.MongoClient("mongodb://mongo:27017")  #for docker
-
+# myclient = pymongo.MongoClient("mongodb://mongo:27017")  #for docker
+myclient = pymongo.MongoClient("mongodb+srv://ytc:kevin@cluster0.35txz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 db = myclient.user_login_system
-db.collection.deleteMany(
-   {}
-)
+votedb = myclient.vote
+onlinedb = myclient.online
+
 import bcrypt
 
+def intializevote():
+    result= votedb.result.find_one({'_id':1})
+    if not result:
+        votedb.result.insert_one({'_id':1,'result':0})
+        return 0
+    else:
+        return result['result']
+        # get_voteresult()
+
+
+def storevote(vote):
+    voting = {'vote' + str(vote): 1}
+    votedb.voting.insert_one(voting)
+
+def countvote(vote):
+    count = 0
+    if votedb.voting.find({'vote' +str(vote): 1}):
+        count = votedb.voting.find({'vote' +str(vote): 1}).count()
+    return count
+
+def storevoteresult(result):
+    db = votedb.result.replace_one({"_id" :1},
+                            {"_id":1, 'result':result}
+                              )
 
 def registration(display,username,password,salt):
     user = {'dis_name':display,'_id':username,'pass':password,'pass_salt':salt}

@@ -1,39 +1,40 @@
 
-from flask import Flask, jsonify, render_template,redirect,url_for,request,session, flash, send_from_directory
+from flask import Flask, render_template,redirect,url_for,request
 
 from flask_login import current_user, login_user, login_required, logout_user, LoginManager
 from flask_socketio import SocketIO,join_room,leave_room
+from flask_pymongo import PyMongo
 
 import requests
 import datetime
-from database import registration,verify,get_userinfo,validate_dis,validate_user
+from database import *
 import bcrypt
-import os
-from pymongo.errors import DuplicateKeyError
 
-#from passlib.hash import pbkdf2_sha256
-#chat_history_database.drop()
-FolderPath = 'C:\\Users\\Liang\\Desktop\\cse312Project\\chatroom\\static\\Files'
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = FolderPath
+app.config['MONGO_URI'] = myclient = "mongodb+srv://ytc:kevin@cluster0.35txz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
 app.config['SECRET_KEY'] = 'secret!'
 
+mongo = PyMongo(app)
 socketio = SocketIO(app)
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
-Online_Users = []
-
-
-
+Online_Users = {}
 
 @app.route('/')
 def index():
     if current_user.is_authenticated:
-        if current_user.display not in Online_Users:
-            Online_Users.append(current_user.display)
+        # if current_user.display not in Online_Users:
+            # Online_Users.append(current_user.display)
+        if mongo.db.images.find_one({'username': current_user.display}):
+            user_row = mongo.db.images.find_one({'username': current_user.display})
+            image_name = user_row['profile_image_name']
+            Online_Users[current_user.display] = image_name
+        else:
+            Online_Users[current_user.display] = ''
     return render_template('index.html')
 
 
@@ -41,12 +42,16 @@ def index():
 @app.route("/logout/")
 @login_required
 def logout():
-    Online_Users.remove(current_user.display)
+    # Online_Users.remove(current_user.display)
+    del Online_Users[current_user.display]
+
+    # socketio.emit("user logout", Online_Users)
     logout_user()
     return redirect(url_for('index'))
 
 
 @app.route('/chatroom')
+@login_required
 def chatroom():
     return render_template('chatroom.html')
 
@@ -80,49 +85,71 @@ def login():
         password = request.form.get('password').encode('utf-8')
         user = get_userinfo(username)
         if user and verify(username,password):
-            login_user(user)
-            return redirect(url_for('index'))
+            if user.display in Online_Users.keys():
+                message = "Already logged in"
+            else:
+                login_user(user)
+                return redirect(url_for('index'))
         else:
             message ="Invalid username or password. Please try again."
     return render_template('login.html',error = message)
 
-# @app.route("/chatroom", methods=["GET", "POST"])
-# def chatroom():
-#     return render_template('chatroom.html')
-
-@app.route('/setting', methods = ['GET', 'POST'])
+@app.route('/setting', methods=['GET', 'POST'])
+@login_required
 def setting():
     if request.method == 'POST':
         if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['file']
-
-        if file.filename == '':
-            flash('No selected file')
             return redirect(request.url)
 
-        if file and ('.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS): #check for picture extensions
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-            return redirect(url_for('uploaded_file', filename=file.filename))
+        if request.files['file'].filename == '':
+            return redirect(request.url)
+
+        if 'file' in request.files:
+            profile_image = request.files['file']
+            if profile_image and ('.' in profile_image.filename and profile_image.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS):
+                if mongo.db.images.find_one({'username': current_user.display}):
+                    mongo.save_file(profile_image.filename, profile_image)
+                    mongo.db.images.replace_one({'username': current_user.display},
+                                                {'username': current_user.display, 'profile_image_name': profile_image.filename})
+                else:
+                    mongo.save_file(profile_image.filename, profile_image)
+                    mongo.db.images.insert_one(
+                        {'username': current_user.display, 'profile_image_name': profile_image.filename})
+            return redirect(url_for('index'))
     return render_template('setting.html')
 
-@app.route('/chatroom/static/Files/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+@app.route('/files/<filename>')
+def file(filename):
+    return mongo.send_file(filename)
 
 @socketio.on('connect')
 def connect_handler():
     if current_user.is_authenticated:
         user = current_user.display
-        print(Online_Users)
-        socketio.emit('add user',(user,Online_Users))
+        result = intializevote()
+
+        socketio.emit('add user',(user,Online_Users,result))
     else:
         return False
 
-@socketio.on("disconnect")
-def disconnect():
-    logout_user()
+# @socketio.on("disconnect")
+# def disconnect():
+#     logout_user()
+
+@socketio.on('vote')
+def voting(input):
+    storevote(input)
+
+    result1 = countvote(1)
+    result2 = countvote(2)
+    # print(result1,result2)
+    socketio.emit('voting bar',(result1,result2),broadcast =True)
+
+@socketio.on("vote result")
+def resulthandler(result):
+    # print(result)
+    storevoteresult(result)
+
 
 @socketio.on("message")
 def message(data):
@@ -169,7 +196,7 @@ def load_user(user_id):
 
 if __name__ == '__main__':
 
-    # socketio.run(app)
+    socketio.run(app)
 
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
+    # socketio.run(app, host="0.0.0.0", port=5000, debug=True) #use this line when using docker
 
