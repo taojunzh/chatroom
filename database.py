@@ -11,10 +11,10 @@ import bcrypt
 def intializevote():
     result= voteuserdb.result.find_one({'_id':1})
     if not result:
-        voteuserdb.result.insert_one({'_id':1,'result':0})
+        voteuserdb.result.insert_one({'_id':1,'result':0,'total':0})
         return 0
     else:
-        return result['result']
+        return (result['result'],result['total'])
         # get_voteresult()
 
 
@@ -28,9 +28,9 @@ def countvote(vote):
         count = voteuserdb.voting.find({'vote' +str(vote): 1}).count()
     return count
 
-def storevoteresult(result):
+def storevoteresult(result,total):
     userdb = voteuserdb.result.replace_one({"_id" :1},
-                            {"_id":1, 'result':result}
+                            {"_id":1, 'result':result,'total':total}
                               )
 
 def registration(display,username,password,salt):

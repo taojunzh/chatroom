@@ -129,7 +129,7 @@ def connect_handler():
         user = current_user.display
         result = intializevote()
 
-        socketio.emit('add user',(user,Online_Users,result))
+        socketio.emit('add user',(user,Online_Users,result[0],result[1]))
     else:
         return False
 
@@ -147,9 +147,9 @@ def voting(input):
     socketio.emit('voting bar',(result1,result2),broadcast =True)
 
 @socketio.on("vote result")
-def resulthandler(result):
+def resulthandler(result,total):
     # print(result)
-    storevoteresult(result)
+    storevoteresult(result,total)
 
 
 @socketio.on("message")
