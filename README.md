@@ -5,7 +5,7 @@ Install Docker
 
 ## Installation
 1. Clone the repository first.
-2. Once Docker is installed, call docker-compose up --build
+2. Once Docker is installed, use command ```docker-compose up --build```
 3. Your App is up for use!
 
 ## How to use
