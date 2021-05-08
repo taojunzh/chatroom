@@ -5,7 +5,7 @@ WORKDIR /root
 
 COPY . .
 
-RUN python -m pip install Flask flask-socketio flask_login
+RUN python -m pip install Flask flask-socketio flask_login flask-pymongo
 
 
 RUN python -m pip install pymongo requests bcrypt
