@@ -19,9 +19,9 @@ login_manager.init_app(app)
 The above code is to configurate the flask application to work with flask login
 source code: [Login-manager](https://flask-login.readthedocs.io/en/latest/_modules/flask_login/login_manager.html#LoginManager)
 This login-manager is an instance that holds the setting for logged in. It will bind
-to the application with .init_app(app)
+to the application by calling .init_app(app)
 The login_manager.login_view works when a user access the [login_required](https://flask-login.readthedocs.io/en/latest/#flask_login.login_required)
-view without begin logged in. The user will redirect to the path login
+view without begin logged in or authenticated. The user will redirect to the path login
 
 ``` 
 @login_manager.user_loader
@@ -33,6 +33,9 @@ source:[user loader](https://flask-login.readthedocs.io/en/latest/_modules/flask
 login_user(user)
 ``` 
 source:[login_user](https://flask-login.readthedocs.io/en/latest/_modules/flask_login/utils.html#login_user)
+The login_user function takes a User class and it has three properties like below. Once a user is logged in
+by this function, we are able to use current_user which is a proxy that monitors current user. For example,
+we called current_user.display will obtain the display name of the current user.
 ``` 
 class User:
     def __init__(self,display,username,password):
@@ -57,6 +60,22 @@ is_active() and get_id(). Having is_authenticated function make sure the users w
 by the [login_required](https://flask-login.readthedocs.io/en/latest/_modules/flask_login/utils.html#login_required) 
 which is a function to verify if a user is logged in. Thus, if a user wants to log
 out, it needs to fulfill login_required first.
+
+``` 
+@app.route("/logout/")
+@login_required
+def logout():
+    # Online_Users.remove(current_user.display)
+    del Online_Users[current_user.display]
+
+    # socketio.emit("user logout", Online_Users)
+    logout_user()
+    return redirect(url_for('index'))
+``` 
+On above code, we called [logout_user()](https://flask-login.readthedocs.io/en/latest/_modules/flask_login/utils.html#logout_user)
+so we can remove the user and clean the remember me cookie if it exists. This logout_user function pop out
+any id exist in the session and remove the remember me cookie in the request.cookie. It sends the updated user information
+to the login manager so it can update users in the application.
 
 ### What license(s) or terms of service apply to this technology?
 Copyright (c) 2011 Matthew Frazier
